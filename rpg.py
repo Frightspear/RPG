@@ -3,30 +3,10 @@ import os
 import time
 import pdb
 import random
-from Player import Player
-from Scene import Scene
-from Start import Start
-    
-# intialise the currentPlayer object
-currentPlayer = Player()
 
-# intialising the first scene of the game
-# x coordinate = 1
-# y coordinate = 1
-# intro 
-Scene1_1 = Scene(
-    1,
-    1,
-    "You come to on the side of a road.\n" +
-    "You see a caravan and dead bodies lying everywhere.\n" +
-    "You can't remember anything. What do you do?\n",
-    ["a dull dagger", "some mouldy bread", "a tattered cloak"]
-)
-
-# intialise the start sequence           
-StartNow = Start(
-    "Would you like to begin [y/n]"
-)
+###################################################################################################
+# GLOBAL HELPERS
+###################################################################################################
 
 #############################
 ## Simple method for adding a
@@ -69,7 +49,336 @@ def help(currentScene):
     )
     
     # return to the current scene
-    currentScene.ready()  
+    currentScene.ready()
+
+###################################################################################################
+# START
+###################################################################################################
+
+class Start:
+    #############################
+    ## The constructor method.
+    ##
+    ## message: String
+    ############################
+    def __init__(self, message):
+    
+        # set message to message
+        self.message = message
+    
+    #############################
+    ## This handles all the input
+    ## commands from the player
+    ############################
+    def ready(self):
+    
+        # prints the start message
+        say (
+            self.message
+        )
+        
+        # wait for input from player
+        option = input("-> ")
+        
+        # "y": yes, start the game
+        if option == "y":
+        
+            # clear the screen
+            os.system('clear')
+            
+            # begin at scene one
+            Scene1_1.begin()
+            
+        # "n": no, go back to the main menu
+        elif option == "n":
+        
+            # clear the screen
+            os.system('clear')
+            
+            # return to main
+            main()
+            
+        # "exit": exit the game
+        elif option == "exit":
+        
+            # exit the game
+            sys.exit
+            
+        # to catch any input thats not an option
+        else:
+            say (
+                "Sorry could you speak up a bit?"
+            )
+            
+            # waits 0.5 seconds before continuing
+            time.sleep(0.5)
+            
+            # return to StartNow.ready
+            StartNow.ready()
+            
+# intialise the start sequence           
+StartNow = Start(
+    "Would you like to begin [y/n]"
+)
+
+###################################################################################################
+# PLAYER
+###################################################################################################
+
+class Player:
+    ############################
+    ## The constructor method.
+    ############################
+    def __init__(self):
+    
+        # intialise player "name" as an empty string
+        # later we'll ask the player for a name
+        self.name = ""
+        
+        # intialise player "maxhealth" to 100
+        self.maxhealth = 100
+        
+        # intialise player "health" to maxhealth 
+        # so they start with full health
+        self.health = self.maxhealth
+        
+        # intialise player "damage" to 10
+        self.damage = 10
+        
+        # intialise player "inventory" to an empty list
+        self.inventory = []
+        
+    ############################
+    ## pickUp is called whenever
+    ## the player types "pick up"
+    ## in a scene.
+    ##
+    ## item: String
+    ## sceneItems: List - A reference to the scene's items
+    ############################
+    def pickUp(self, item, sceneItems):
+    
+        # add the picked up item to the players inventory
+        self.inventory.append(item)
+        
+        # remove the picked up item from the scene
+        # that it was picked up from
+        sceneItems.remove(item)
+        
+        # print that the picked up item was added to
+        # the players inventory
+        say (
+            item + " was added to your inventory!"
+        )
+        
+# intialise the currentPlayer object
+currentPlayer = Player()
+
+###################################################################################################
+# SCENE
+###################################################################################################
+
+class Scene:
+    #############################
+    ## The constructor method.
+    ##
+    ## x: Integer
+    ## y: Integer
+    ## Intro: String
+    ## Items: List
+    ############################
+    def __init__(self, x, y, intro, items):
+    
+        ##############################################
+        ## Each scene is one square in a grid.
+        ## So each scene needs an "x" axis coordinate
+        ## and a "y" axis coordinate.
+        ##############################################
+        
+        # set the local "x" property to an integer
+        self.x = x
+        
+        # set the local "y" property to an integer
+        self.y = y
+        
+        ##############################################
+        ## Each scene has an intro which is the
+        ## discription the player gets when they enter
+        ## the scene.
+        ##############################################
+        
+        # set the local "intro" property
+        self.intro = intro
+        
+        ##############################################
+        ## Each scene has a number of unique items
+        ## that the player can pick up.
+        ##############################################
+        
+        # set the local "items" property to the list of items
+        self.items = items
+    
+    #############################
+    ## Begin is called everytime a player
+    ## enters a scene.
+    #############################
+    def begin(self):
+    
+        # print the intro
+        printOptions (
+            self.intro
+        )
+        
+        # go to self.ready  
+        self.ready()
+        
+    #############################
+    ## This method handles all the
+    ## input commands from the player.
+    ############################    
+    def ready(self):
+    
+        # wait for input from player
+        option = input("-> ")
+        
+        # "help": call the help method which prints the list of possible commands
+        if option == "help":
+            help(self)
+        
+        # "i": display the players inventory.
+        elif option == "i":
+        
+            # initialising inventoryItems as an empty String
+            inventoryItems = ""
+            
+            # loop through the inventory items
+            for inventoryItem in currentPlayer.inventory:
+            
+                # add a formatted line for this inventory item
+                inventoryItems = inventoryItems + "     * %s\n" % inventoryItem
+            
+            # print the formatted inventory
+            printOptions (
+                "Inventory:\n\n" +
+                inventoryItems
+            )
+            
+            # return to self.ready
+            self.ready()
+            
+        # "look around": check for items in the current scene
+        elif option == "look around":
+        
+            # check if there are any items in the list of items
+            if self.items:
+            
+                # initialising inventoryItems as an empty String
+                items = ""
+                
+                # loop through the items
+                for item in self.items:
+                
+                    # add a formatted line for this item
+                    items = items + "   * %s\n" % item
+                    
+                # print the items that are in the current scene    
+                say (
+                    "You see:\n\n" +
+                    items
+                )
+                
+                # return to self.ready
+                self.ready()
+                
+            # if there are no items in the current scene
+            else:
+                say (
+                    "You don't see anything"
+                )
+                
+            # return to self.ready    
+            self.ready()
+            
+        # "pick up": wait for user input
+        elif option == "pick up":
+        
+            # prompt the user for what item in the current scene they would like to pick up
+            say (
+                "What would you like to pick up?"
+            )
+            
+            # intialise the empty container "foundItem" as false
+            foundItem = False
+            
+            # wait for input from player
+            option = input ("-> ")
+            
+            # loop through the scene's items
+            for item in self.items:
+                
+                # if the option the user typed is the name of this item
+                if item == option:
+                    
+                    # setting foundItem item to the item the player typed
+                    foundItem = item
+            
+            # testing to see if an item was found        
+            if foundItem:
+                currentPlayer.pickUp(foundItem, self.items)
+                
+            # if the player input something that isn't an item
+            else:
+                say (
+                    "There is no such thing as \"" + option + "\""
+                )
+                
+            # return to self.ready    
+            self.ready()
+        
+        # currently a place holder for the talk option
+        elif option == "talk":
+            say (
+                "You're dazed and confused, there is no one around."
+            )
+            self.ready()
+            
+        # currently a place holder for the battle option
+        elif option == "attack":
+            say (
+                "You look around for something to hit,\n" +
+                "but there isn't anything around."
+            )
+            self.ready()
+            
+        # "exit": exit the game
+        elif option == "exit":
+            sys.exit
+         
+        # to catch anything the player inputs that not an option 
+        else:
+            say (
+                    "There is no such thing as \"" + option + "\""
+            )
+            
+            # return to self.ready
+            self.ready()
+
+# intialising the first scene of the game
+# x coordinate = 1
+# y coordinate = 1
+# intro 
+Scene1_1 = Scene(
+    1,
+    1,
+    "You come to on the side of a road.\n" +
+    "You see a caravan and dead bodies lying everywhere.\n" +
+    "You can't remember anything. What do you do?\n",
+    ["a dull dagger", "some mouldy bread", "a tattered cloak"]
+)
+
+###################################################################################################
+# MAIN
+###################################################################################################
 
 #############################
 ## Main is the function that 
@@ -134,5 +443,5 @@ def main():
       # go back to main
       main()
       
-# call main
+# calling main
 main()
