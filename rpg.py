@@ -30,6 +30,35 @@ def printOptions(line):
     print (line)
     print ("\n==============================\n")
     
+def map(currentScene):
+    printOptions (
+        """
++-----------+-----------+-----------+        N
+|           |           |           |        ^
+|           |           |           |        |
+|           |           |           |   W <-----> E
+|           |           |           |        |
+|           |           |           |        v
++-----------------------------------+        S
+|           |           |           |
+|           |           |           |
+|           |  caravan  |           |
+|           |           |           |
+|           |           |           |
++-----------------------------------+
+|           |           |           |
+|           |           |           |
+|           |           |           |
+|           |           |           |
+|           |           |           |
++-----------+-----------+-----------+
+
+        """
+    )
+        
+    # return to the current scene
+    currentScene.ready()
+    
 #############################
 ## Prints out the help menu
 ## and then calls ready for
@@ -45,8 +74,12 @@ def help(currentScene):
         "\"talk\" to talk to anyone nearby.\n"
         "\"exit\" to exit.\n" +
         "\"i\" to open your inventory.\n" +
-        "\"m\" to view the map."
-    )
+        "\"m\" to view the map.\n" +
+        "\"go north\" to move north.\n" +
+        "\"go south\" to move south.\n" +
+        "\"go east\" to move east.\n" +
+        "\"go west\" to move west."
+        )
     
     # return to the current scene
     currentScene.ready()
@@ -87,7 +120,7 @@ class Start:
             os.system('clear')
             
             # begin at scene one
-            Scene1_1.begin()
+            Scene0_0.begin()
             
         # "n": no, go back to the main menu
         elif option == "n":
@@ -116,7 +149,7 @@ class Start:
             # return to StartNow.ready
             StartNow.ready()
             
-# intialise the start sequence           
+# initialise the start sequence           
 StartNow = Start(
     "Would you like to begin [y/n]"
 )
@@ -131,21 +164,21 @@ class Player:
     ############################
     def __init__(self):
     
-        # intialise player "name" as an empty string
+        # initialise player "name" as an empty string
         # later we'll ask the player for a name
         self.name = ""
         
-        # intialise player "maxhealth" to 100
-        self.maxhealth = 100
+        # initialise player "maxhealth" to 50
+        self.maxhealth = 50
         
-        # intialise player "health" to maxhealth 
+        # initialise player "health" to maxhealth 
         # so they start with full health
         self.health = self.maxhealth
         
-        # intialise player "damage" to 10
-        self.damage = 10
+        # initialise player "damage" to 10
+        self.damage = [1, 10]
         
-        # intialise player "inventory" to an empty list
+        # initialise player "inventory" to an empty list
         self.inventory = []
         
     ############################
@@ -171,8 +204,26 @@ class Player:
             item + " was added to your inventory!"
         )
         
-# intialise the currentPlayer object
+# initialise the currentPlayer object
 currentPlayer = Player()
+
+###################################################################################################
+# CHARACTER
+###################################################################################################
+
+class Character:
+    
+    def __init__(self, name, health, damage):
+    
+        # set the local "name" property
+        self.name = name
+        
+        # initialise player "health" to maxhealth 
+        # so they start with full health
+        self.health = health
+        
+        # initialise character "damage" 
+        self.damage = damage
 
 ###################################################################################################
 # SCENE
@@ -187,7 +238,7 @@ class Scene:
     ## Intro: String
     ## Items: List
     ############################
-    def __init__(self, x, y, intro, items):
+    def __init__(self, x, y, intro, items, description, characters):
     
         ##############################################
         ## Each scene is one square in a grid.
@@ -200,6 +251,12 @@ class Scene:
         
         # set the local "y" property to an integer
         self.y = y
+        
+        # set the local "description" property
+        self.description = description
+        
+        # set the local "characters" property
+        self.characters = characters
         
         ##############################################
         ## Each scene has an intro which is the
@@ -217,6 +274,8 @@ class Scene:
         
         # set the local "items" property to the list of items
         self.items = items
+        
+        self.beenHereBefore = False
     
     #############################
     ## Begin is called everytime a player
@@ -224,11 +283,21 @@ class Scene:
     #############################
     def begin(self):
     
-        # print the intro
-        printOptions (
-            self.intro
-        )
+        if not self.beenHereBefore:
+                
+            # print the intro
+            printOptions (
+                self.intro
+            )
         
+            self.beenHereBefore = True
+            
+        else:
+        
+            printOptions (
+                self.description
+            )
+            
         # go to self.ready  
         self.ready()
         
@@ -307,7 +376,7 @@ class Scene:
                 "What would you like to pick up?"
             )
             
-            # intialise the empty container "foundItem" as false
+            # initialise the empty container "foundItem" as false
             foundItem = False
             
             # wait for input from player
@@ -344,11 +413,161 @@ class Scene:
             
         # currently a place holder for the battle option
         elif option == "attack":
-            say (
-                "You look around for something to hit,\n" +
-                "but there isn't anything around."
-            )
+                
+            if self.characters:
+                
+                say (
+                    "\nYou:\n" +
+                    "Health = " + str(currentPlayer.health) + "\n" +
+                    "Damage = " + str(currentPlayer.damage) + "\n"
+                )
+                
+                for character in self.characters:
+                    
+                    if character.health > 0:
+                    
+                        say (
+                            "\n" + character.name + ":\n" +
+                            "Health = " + str(character.health) + "\n" +
+                            "Damage = " + str(character.damage) + "\n"       
+                        )
+
+                        say (
+                            "...\n"
+                        )
+                        
+                        time.sleep(1)
+                        
+                        playerDamageDealt = random.randint(currentPlayer.damage[0], currentPlayer.damage[1])
+                        
+                        character.health = character.health - playerDamageDealt
+                        
+                        if character.health <= 0:
+                        
+                            say (
+                                "You have slain " + character.name + "!\n" 
+                            )
+                            
+                            self.characters.remove(character)
+                            
+                        else:                 
+                            
+                            say (
+                                "You attack " + character.name + " for " + str(playerDamageDealt) + " damage!\n" +
+                                character.name + " is it " + str(character.health) + " health!\n"
+                            )
+                            
+                            
+                            say (
+                                "...\n"
+                            )
+                            
+                            time.sleep(1)
+                            
+                            characterDamageDealt = random.randint(character.damage[0], character.damage[1])
+                            
+                            currentPlayer.health = currentPlayer.health - characterDamageDealt
+                            
+                            say (
+                                character.name + " attacked you dealing " + str(characterDamageDealt) + " damage!\n" +
+                                "You're at " + str(currentPlayer.health) + " health.\n"
+                            )
+                            
+                                                
+            else:
+            
+                say (
+                    "You look for someone to hit but\n" +
+                    "there isn't anybody around.\n"
+                )
+                   
             self.ready()
+                
+                
+        
+        # "m": call the map method that prints out the map    
+        elif option == "m":
+            map(self)
+        
+        # "go north": adds 1 to the current y coordinate    
+        elif option == "go north":
+        
+            newX = self.x
+            newY = self.y + 1
+            
+            os.system('clear')
+            
+            time.sleep(1)
+            
+            printOptions (
+                "You head north..."
+            )
+            
+            time.sleep(2)
+            
+            os.system('clear')
+            
+            self.goToNextScene(newX, newY)       
+                                                          
+        # "go south": minus 1 to the current y coordinate 
+        elif option == "go south":
+        
+            newX = self.x
+            newY = self.y - 1
+            
+            os.system('clear')
+            
+            time.sleep(1)
+            
+            printOptions (
+                "You head south..."
+            )
+            
+            time.sleep(2)
+            
+            os.system('clear')
+            
+            self.goToNextScene(newX, newY)
+            
+        # "go east": adds 1 to the current x coordinate 
+        elif option == "go east":
+        
+            newX = self.x + 1
+            newY = self.y
+            
+            os.system('clear')
+            
+            time.sleep(1)
+            
+            printOptions (
+                "You head east..."
+            )
+            
+            time.sleep(2)
+            
+            os.system('clear')
+            
+            self.goToNextScene(newX, newY)
+        
+        # "go west": minus 1 to the current x coordinate     
+        elif option == "go west":
+        
+            newX = self.x - 1
+            newY = self.y
+            
+            os.system('clear')
+            
+            time.sleep(1)
+            
+            printOptions (
+                "You head west..."
+            )
+            
+            time.sleep(2)
+            
+            os.system('clear')
+            
+            self.goToNextScene(newX, newY)
             
         # "exit": exit the game
         elif option == "exit":
@@ -362,19 +581,77 @@ class Scene:
             
             # return to self.ready
             self.ready()
+            
+    def goToNextScene(self, newX, newY):
+    
+        nextScene = False
+        
+        for Scene in gameScenes:
+            
+            if Scene.x == newX and Scene.y == newY:
+                
+                nextScene = Scene
+                
+        if nextScene:
+            
+            nextScene.begin()
+            
+        else:
+            say (
+                "You can't go there, sorry!"
+            )
+            
+            self.ready()                                    
+            
+gameScenes = []
 
-# intialising the first scene of the game
-# x coordinate = 1
-# y coordinate = 1
+# initialising the first scene of the game
+# x coordinate = 0
+# y coordinate = 0
 # intro 
-Scene1_1 = Scene(
-    1,
-    1,
+gameScenes.append(Scene(
+    0,
+    0,
     "You come to on the side of a road.\n" +
     "You see a caravan and dead bodies lying everywhere.\n" +
     "You can't remember anything. What do you do?\n",
-    ["a dull dagger", "some mouldy bread", "a tattered cloak"]
-)
+    ["a dull dagger", "some mouldy bread", "a tattered cloak"],
+    "You see the caravan and the dead bodies lying everywhere.",
+    []
+ ))
+
+gameScenes.append(Scene(
+    0,
+    1,
+    "After heading down the road for awhile, you see a figure\n" +
+    "in the distance. Eventually they get closer and you see that\n" +
+    "its an old wanderer. He sits down on the side of the road\n" +
+    "and waves at you, you walk over to him.\n",
+    [],
+    "The wanderer is still sitting beside the road.",
+    [
+        Character(
+            "the Old Wanderer",
+            20,
+            [0, 5]    
+        ),
+        
+        Character(
+            "helpless baby",
+            1,
+            [0, 0]
+        )
+    ]
+))
+
+# gameScenes.append(Scene(
+#     0,
+#     2,
+#     "DEBUG\n" +
+#     "You see a caravan and dead bodies lying everywhere.\n" +
+#     "You can't remember anything. What do you do?\n",
+#     ["a dull dagger", "some mouldy bread", "a tattered cloak"]
+# ))
 
 ###################################################################################################
 # MAIN
@@ -428,8 +705,8 @@ def main():
         # clear the screen
         os.system('clear')
         
-        # go to Scene1_1.begin
-        Scene1_1.begin()
+        # go to Scene0_0.begin
+        gameScenes[0].begin()
         
     # to catch any input that isn't an option
     else:
