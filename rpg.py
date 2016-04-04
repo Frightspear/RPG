@@ -477,8 +477,7 @@ class Scene:
                 for item in currentPlayer.inventory:
                     
                     itemDamage = itemDamage + item.damage
-                    
-                
+       
                 say (
                     "\nYou:\n" +
                     "Health = " + str(currentPlayer.health) + "\n" +
@@ -550,40 +549,6 @@ class Scene:
                                 character.name + " attacked you dealing " + str(characterDamageDealt) + " damage!\n" +
                                 "You're at " + str(currentPlayer.health) + " health.\n"
                             )
-                            
-                        if currentPlayer.health <= 0:
-                        
-                            say (
-                                "You have been slain by " + character.name + "\n"
-                            )
-                            
-                            time.sleep(1.5)
-                            
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            sys.exit
-                            
                                                 
             else:
             
@@ -592,9 +557,42 @@ class Scene:
                     "there isn't anybody around.\n"
                 )
                    
-            self.ready()
+            if currentPlayer.health <= 0:
+                        
+                say (
+                    "You have been slain by " + character.name + "\n"
+                )
                 
+                time.sleep(1.5)
                 
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                sys.exit
+                
+            else:
+            
+                self.ready()   
         
         # "m": call the map method that prints out the map    
         elif option == "m":
