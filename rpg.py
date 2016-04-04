@@ -35,24 +35,23 @@ def map(currentScene):
         """
 +-----------+-----------+-----------+        N
 |           |           |           |        ^
-|           |           |           |        |
-|           |           |           |   W <-----> E
+|           |    Old    |           |        |
+|   Forest  |  Wanderer | Wasteland |   W <-----> E
 |           |           |           |        |
 |           |           |           |        v
 +-----------------------------------+        S
 |           |           |           |
 |           |           |           |
-|           |  caravan  |           |
-|           |           |           |
+|  Floppy   |  Caravan  |  Meadows  |
+|   Bush    |           |           |
 |           |           |           |
 +-----------------------------------+
 |           |           |           |
-|           |           |           |
-|           |           |           |
+|           |   Black   |  Melgrove |
+|   Adam    |   Marsh   |   Ruins   |
 |           |           |           |
 |           |           |           |
 +-----------+-----------+-----------+
-
         """
     )
         
@@ -68,7 +67,7 @@ def help(currentScene):
 
     # prints the commands the player can use in any scene
     printOptions (
-        "\"look around\" to see what items are around.\n"
+        "\"look around\" to see what items and people are around.\n"
         "\"pick up\" to pick up items.\n"
         "\"attack\" to attack nearby enimies.\n"
         "\"talk\" to talk to anyone nearby.\n"
@@ -120,7 +119,7 @@ class Start:
             os.system('clear')
             
             # begin at scene one
-            Scene0_0.begin()
+            gameScenes[0].begin()
             
         # "n": no, go back to the main menu
         elif option == "n":
@@ -212,8 +211,16 @@ currentPlayer = Player()
 ###################################################################################################
 
 class Character:
+    #############################
+    ## The constructor method.
+    ##
+    ## name: String
+    ## health: Integer
+    ## damage: List
+    ## items: List
+    ############################
     
-    def __init__(self, name, health, damage):
+    def __init__(self, name, health, damage, items):
     
         # set the local "name" property
         self.name = name
@@ -224,13 +231,21 @@ class Character:
         
         # initialise character "damage" 
         self.damage = damage
+        
+        # set the local "items" property to the list of items
+        self.items = items
 
 ###################################################################################################
 # ITEM
 ###################################################################################################
 
 class Item:
-    
+    #############################
+    ## The constructor method.
+    ##
+    ## name: String
+    ## damage: Integer
+    ############################ 
     def __init__(self, name, damage):
     
         # set the local "name" property
@@ -249,8 +264,10 @@ class Scene:
     ##
     ## x: Integer
     ## y: Integer
-    ## Intro: String
-    ## Items: List
+    ## intro: String
+    ## items: List
+    ## description: String
+    ## characters: List
     ############################
     def __init__(self, x, y, intro, items, description, characters):
     
@@ -338,7 +355,7 @@ class Scene:
             for inventoryItem in currentPlayer.inventory:
             
                 # add a formatted line for this inventory item
-                inventoryItems = inventoryItems + "     * %s\n" % inventoryItem.name
+                inventoryItems = inventoryItems + "     * %s" % inventoryItem.name + " that does " + str(inventoryItem.damage) + " damage.\n"
             
             # print the formatted inventory
             printOptions (
@@ -352,6 +369,23 @@ class Scene:
         # "look around": check for items in the current scene
         elif option == "look around":
         
+            if self.characters:
+                
+                # initialising characters as an empty String
+                characters = ""
+                
+                # loop through the characters
+                for character in self.characters:
+                
+                    # add a formatted line for this character
+                    characters = characters + "   * %s" % character.name + " who can deal " + str(character.damage) + " damage.\n"
+                    
+                # print the characters that are in the current scene    
+                say (
+                    "You notice:\n\n" +
+                    characters
+                )
+                              
             # check if there are any items in the list of items
             if self.items:
             
@@ -362,19 +396,16 @@ class Scene:
                 for item in self.items:
                 
                     # add a formatted line for this item
-                    items = items + "   * %s\n" % item.name
+                    items = items + "   * %s" % item.name + " that does " + str(item.damage) + " damage.\n"
                     
                 # print the items that are in the current scene    
                 say (
                     "You see:\n\n" +
                     items
                 )
-                
-                # return to self.ready
-                self.ready()
-                
-            # if there are no items in the current scene
-            else:
+                                
+            # if there are no items or people in the current scene
+            if not self.items and not self.characters:
                 say (
                     "You don't see anything"
                 )
@@ -420,9 +451,20 @@ class Scene:
         
         # currently a place holder for the talk option
         elif option == "talk":
-            say (
-                "You're dazed and confused, there is no one around."
-            )
+            
+            if self.characters:
+            
+                say (
+                    "No one really understands what you're saying.\n" +
+                    "it's like you're speaking a different language.\n"
+                )
+            
+            else:
+            
+                say(
+                    "Who are you talking to? There is nobody around.\n"
+                )
+                
             self.ready()
             
         # currently a place holder for the battle option
@@ -470,13 +512,27 @@ class Scene:
                                 "You have slain " + character.name + "!\n" 
                             )
                             
+                            droppedItems = False
+                            
+                            for item in character.items:
+                                
+                                self.items.append(item)
+                                
+                                droppedItems = True
+                                
+                            if droppedItems:
+                                
+                                say (
+                                    "It looks like " + character.name + " dropped something.\n"
+                                )
+                            
                             self.characters.remove(character)
                             
                         else:                 
                             
                             say (
                                 "You attack " + character.name + " for " + str(playerDamageDealt) + " damage!\n" +
-                                character.name + " is it " + str(character.health) + " health!\n"
+                                character.name + " is at " + str(character.health) + " health!\n"
                             )
                             
                             
@@ -494,6 +550,30 @@ class Scene:
                                 character.name + " attacked you dealing " + str(characterDamageDealt) + " damage!\n" +
                                 "You're at " + str(currentPlayer.health) + " health.\n"
                             )
+                            
+                        if currentPlayer.health <= 0:
+                        
+                            say (
+                                "You have been slain by " + character.name + "\n"
+                            )
+                            
+                            time.sleep(1.5)
+                            
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
                             
                                                 
             else:
@@ -593,6 +673,23 @@ class Scene:
             
         # "exit": exit the game
         elif option == "exit":
+        
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
+            sys.exit
             sys.exit
          
         # to catch anything the player inputs that not an option 
@@ -653,7 +750,7 @@ gameScenes.append(Scene(
             0
         )
     ],
-    "You see the caravan and the dead bodies lying everywhere.",
+    "Nothing has changed, you see the caravan and the dead bodies lying everywhere.",
     []
  ))
 
@@ -665,30 +762,297 @@ gameScenes.append(Scene(
     "its an old wanderer. He sits down on the side of the road\n" +
     "and waves at you, you walk over to him.\n",
     [],
-    "The wanderer is still sitting beside the road.",
+    "Nothing has changed, the road is still the same.\n",
     [
         Character(
             "the Old Wanderer",
             20,
-            [0, 5]    
+            [0, 8],
+            [
+                Item(
+                    "a shimmering sabre",
+                    12
+                ),
+                
+                Item(
+                    "some smelly cheese",
+                    -4
+                ),
+                
+                Item(
+                    "a pair of well worn socks",
+                    0
+                )
+            ]   
+        ),
+        
+    ]
+))
+
+gameScenes.append(Scene(
+    1,
+    1,
+    "As you continue to walk, you notice the scenery beginning\n" +
+    "to change. It gradually becomes less green and more brown.\n" +
+    "Eventually there aren't any plants and everything is eerily quiet.\n" +
+    "\n" +
+    "As you come over the next rise in the road you begin to hear a sort\n" +
+    "of chanting. You continue walking until you come across a goblin camp.\n" +
+    "in the middle of the camp is a pile of treasure. 4 goblins are dancing\n" +
+    "around the treasure.\n" +
+    "\n" +
+    "The chanting stops and the goblins turn towards you, drawing their\n" +
+    "weapons. They start running towards you, waving their weapins menacingly.\n",
+    [
+        Item(
+            "a jewelled dagger",
+            8
+        ),
+        
+        Item(
+            "some cotton brandy",
+            -4
+        )
+    ],
+    "Nothing has changed, the goblin camp is still there.\n",
+    [
+        Character(
+            "a Goblin",
+            10,
+            [0, 5],
+            [
+                Item(
+                    "a soiled loin cloth",
+                    -20
+                )
+            ]
+        ),
+            
+        Character(
+            "a Goblin",
+            12,
+            [0, 7],
+            [
+                Item(
+                    "a rusty knife",
+                    3
+                )
+            ]
+        ),
+            
+        Character(           
+            "a Goblin",
+            7,
+            [0, 15],
+            [
+                Item(
+                    "a torn ear",
+                    0
+                )
+            ]
         ),
         
         Character(
-            "helpless baby",
-            1,
-            [0, 0]
+             "the Goblin Chief",
+            30,
+            [0, 20],
+            [
+                Item(
+                    "a rusty broadsword",
+                    10
+                )
+            ]   
         )
     ]
 ))
 
-# gameScenes.append(Scene(
-#     0,
-#     2,
-#     "DEBUG\n" +
-#     "You see a caravan and dead bodies lying everywhere.\n" +
-#     "You can't remember anything. What do you do?\n",
-#     ["a dull dagger", "some mouldy bread", "a tattered cloak"]
-# ))
+gameScenes.append(Scene(
+    1,
+    0,
+    "You travel for awhile and eventually come to a meadow full\n" +
+    "of flowers. A little girl is in the meadow picking\n" +
+    "flowers. She looks at you cursiously as you\n" +
+    "walk past.\n",
+    [
+        Item(
+            "a bright dandalion",
+            0
+        ),
+        
+        Item(
+            "a thorny rose",
+            1
+        )
+    ],
+    "Nothing has changed, the meadow is still flowery.\n",
+    [
+        Character(
+            "a Little Girl",
+            5,
+            [0, 2],
+            [
+                Item(
+                    "a sad bouqet",
+                    0
+                ),
+                
+                Item(
+                    "a bloodstained dress",
+                    0
+                )                
+            ]   
+        ),
+        
+    ]
+))
+
+gameScenes.append(Scene(
+    1,
+    -1,
+    "As you're walking along, lost in thought, you realise that the air\n" +
+    "has become much cooler and thicker. Their appear to be some ruins strewn\n" +
+    "haphazardly around the place. You hear a spooky \"WOoooOOOOOo\" \n" +
+    "as a ghost appears out of the ruins by your right.\n",
+    [
+        Item(
+            "some spOOky chains",
+            1.5
+        ),
+                
+        Item(
+            "a blob of goo",
+            0
+        )      
+    ],
+    "Nothing has changed, you hear a ghostly WOooOOo in the distance.\n",
+    [
+        Character(
+            "a spoOky ghost",
+            20,
+            [0, 8],
+            [
+                Item(
+                    "a puff of smoke",
+                    0
+                )
+            ]   
+        ),
+        
+    ]
+))
+
+gameScenes.append(Scene(
+    0,
+    -1,
+    "As you're walking along, you're feet start sinking into the ground\n" +
+    "you look around and notice that there is puddles everywhere.\n" +
+    "You see a cabin on stilts in the middle of a big puddle.\n" +
+    "\n" +
+    "As you walk over to the cabin, an Ugly Witch sticks her head" +
+    "out of the door and starts chanting a spell.\n" +
+    "It doesn't look like it's going to be a nice one...\n",
+    [
+        Item(
+            "a gross toadstool",
+            -5
+        ),
+        
+        Item(
+            "a little toad",
+            0
+        )
+        
+    ],
+    "Nothing has changed, the swamp still smells and everything feels damp.\n",
+    [
+        Character(
+            "the Ugly Witch",
+            25,
+            [0, 30],
+            [
+                Item(
+                    "a magical wand",
+                    6
+                )
+            ]   
+        ),
+        
+    ]
+))
+
+gameScenes.append(Scene(
+    -1,
+    -1,
+    "You see a great floating blur in the distance.\n" +
+    "As you get closer, you see that it's a giant head.\n" +
+    "\n" +
+    "\"Hello\" says the head. \"I am Adam.\" if you can defeat\n" +
+    "me in combat, you will reach enlightenment.\n",
+    [],
+    "Nothing has changed, Adam is still there, floating around.\n",
+    [
+        Character(
+            "Adam",
+            1000,
+            [500, 1000],
+            []
+        )                
+    ]
+))  
+
+gameScenes.append(Scene(
+    -1,
+    0,
+    "As you're walking down the road, you hear a rustling beside you.\n" +
+    "You look to see a bush that seems to be flopping along on the ground.\n" +
+    "It seems to be some sort of useless enchanted bush.\n",
+    [],
+    "Nothing has changed.",
+    [
+        Character(
+            "a Floppy Bush",
+            1,
+            [0, 0],
+            [
+                Item(
+                    "a floppy leaf",
+                    0
+                )
+            ]   
+        ),
+        
+    ]
+))
+
+gameScenes.append(Scene(
+    -1,
+    1,
+    "You head into a leafy sunlit forest, you notice some small faeries\n" +
+    "darting between the trees laughing. A badger shuffles across your\n" +
+    "path and stops to look at you before shuffling off.\n" +
+    "It seems like a very peacful place.\n",
+    [],
+    "Nothing has changed, the forest is still full of sunlight and the faeries are still laughing.",
+    [
+        Character(
+            "an Old Badger",
+            50,
+            [15, 30],
+            [
+                Item(
+                    "a sharp claw",
+                    7
+                ),
+                
+                Item(
+                    "a fluffy pelt",
+                    0
+                )
+            ]   
+        ),
+        
+    ]
+))
 
 ###################################################################################################
 # MAIN
@@ -712,7 +1076,7 @@ def main():
     
     # print the start menu
     printOptions (
-        "Welcome to the land.\n" +
+        "Welcome to the land of Oooo.\n" +
         "Type \"help\" at anytime to see the options.\n" +
         "You can exit the game at anytime by typing \"exit\"\n" +
         "To start the game type \"start\""
