@@ -574,6 +574,15 @@ class Scene:
                             sys.exit
                             sys.exit
                             sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
+                            sys.exit
                             
                                                 
             else:
@@ -855,7 +864,7 @@ gameScenes.append(Scene(
         Character(
              "the Goblin Chief",
             30,
-            [0, 20],
+            [10, 20],
             [
                 Item(
                     "a rusty broadsword",
@@ -910,12 +919,12 @@ gameScenes.append(Scene(
     1,
     -1,
     "As you're walking along, lost in thought, you realise that the air\n" +
-    "has become much cooler and thicker. Their appear to be some ruins strewn\n" +
+    "has become much cooler and thicker. There appear to be some ruins strewn\n" +
     "haphazardly around the place. You hear a spooky \"WOoooOOOOOo\" \n" +
     "as a ghost appears out of the ruins by your right.\n",
     [
         Item(
-            "some spOOky chains",
+            "a spOOky chain",
             1.5
         ),
                 
@@ -928,8 +937,8 @@ gameScenes.append(Scene(
     [
         Character(
             "a spoOky ghost",
-            20,
-            [0, 8],
+            40,
+            [15, 25],
             [
                 Item(
                     "a puff of smoke",
@@ -948,7 +957,7 @@ gameScenes.append(Scene(
     "you look around and notice that there is puddles everywhere.\n" +
     "You see a cabin on stilts in the middle of a big puddle.\n" +
     "\n" +
-    "As you walk over to the cabin, an Ugly Witch sticks her head" +
+    "As you walk over to the cabin, an Ugly Witch sticks her head\n" +
     "out of the door and starts chanting a spell.\n" +
     "It doesn't look like it's going to be a nice one...\n",
     [
@@ -967,8 +976,8 @@ gameScenes.append(Scene(
     [
         Character(
             "the Ugly Witch",
-            25,
-            [0, 30],
+            60,
+            [15, 30],
             [
                 Item(
                     "a magical wand",
