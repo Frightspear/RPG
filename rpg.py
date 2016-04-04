@@ -30,6 +30,11 @@ def printOptions(line):
     print (line)
     print ("\n==============================\n")
     
+#############################
+## Prints out a map
+##
+## currentScene: Scene - The current Scene object
+#############################
 def map(currentScene):
     printOptions (
         """
@@ -88,6 +93,7 @@ def help(currentScene):
 ###################################################################################################
 
 class Start:
+
     #############################
     ## The constructor method.
     ##
@@ -138,6 +144,8 @@ class Start:
             
         # to catch any input thats not an option
         else:
+
+            # Default feedback for no valid command
             say (
                 "Sorry could you speak up a bit?"
             )
@@ -158,6 +166,7 @@ StartNow = Start(
 ###################################################################################################
 
 class Player:
+
     ############################
     ## The constructor method.
     ############################
@@ -211,6 +220,7 @@ currentPlayer = Player()
 ###################################################################################################
 
 class Character:
+
     #############################
     ## The constructor method.
     ##
@@ -219,7 +229,6 @@ class Character:
     ## damage: List
     ## items: List
     ############################
-    
     def __init__(self, name, health, damage, items):
     
         # set the local "name" property
@@ -240,6 +249,7 @@ class Character:
 ###################################################################################################
 
 class Item:
+
     #############################
     ## The constructor method.
     ##
@@ -259,6 +269,7 @@ class Item:
 ###################################################################################################
 
 class Scene:
+
     #############################
     ## The constructor method.
     ##
@@ -306,6 +317,7 @@ class Scene:
         # set the local "items" property to the list of items
         self.items = items
         
+        # A flag for remembering
         self.beenHereBefore = False
     
     #############################
@@ -321,10 +333,12 @@ class Scene:
                 self.intro
             )
         
+            # Remember for next time 
             self.beenHereBefore = True
             
         else:
-        
+       
+            # Print the description 
             printOptions (
                 self.description
             )
@@ -343,6 +357,8 @@ class Scene:
         
         # "help": call the help method which prints the list of possible commands
         if option == "help":
+
+            # Display the help information
             help(self)
         
         # "i": display the players inventory.
@@ -406,6 +422,8 @@ class Scene:
                                 
             # if there are no items or people in the current scene
             if not self.items and not self.characters:
+
+                # Better than saying nothing
                 say (
                     "You don't see anything"
                 )
@@ -451,9 +469,12 @@ class Scene:
         
         # currently a place holder for the talk option
         elif option == "talk":
-            
+           
+            # Check if there are characters in the scene 
             if self.characters:
-            
+           
+                # Unfortunately there's no logic for talking
+                # so just give some excuse 
                 say (
                     "No one really understands what you're saying.\n" +
                     "it's like you're speaking a different language.\n"
@@ -461,110 +482,147 @@ class Scene:
             
             else:
             
+                # We don't have to give an excuse because there's no
+                # one to talk to
                 say(
                     "Who are you talking to? There is nobody around.\n"
                 )
-                
+               
+            # Go back to the scene and wait
             self.ready()
             
         # currently a place holder for the battle option
         elif option == "attack":
-                
+               
+            # Check if there are any characters in the scene 
             if self.characters:
-            
+           
+                # Set a sensible default of 0
+                # - a good value if there are no items 
                 itemDamage = 0
-                
+               
+                # For every item in the inventory 
                 for item in currentPlayer.inventory:
-                    
+                   
+                    # Add it's damage to the total itemDamage 
                     itemDamage = itemDamage + item.damage
-       
+      
+                # Output the stats 
                 say (
                     "\nYou:\n" +
                     "Health = " + str(currentPlayer.health) + "\n" +
                     "Base damage = " + str(currentPlayer.damage) +  "\n" +
                     "Item damage = " + str(itemDamage) + "\n"
                 )
-                
+               
+                # Do this for every character in the scene 
                 for character in self.characters:
-                    
+                   
+                    # Check if the the character is alive 
                     if character.health > 0:
-                    
+                   
+                        # Stats for the character 
                         say (
                             "\n" + character.name + ":\n" +
                             "Health = " + str(character.health) + "\n" +
                             "Damage = " + str(character.damage) + "\n"       
                         )
 
+                        # New line... 
                         say (
                             "...\n"
                         )
-                        
+                       
+                        # wait for a bit 
                         time.sleep(1)
-                        
+                       
+                        # Generate the damage the player inflicts for this attack 
                         playerDamageDealt = random.randint(currentPlayer.damage[0], currentPlayer.damage[1]) + itemDamage
-                        
+                       
+                        # Do the damage to the character's health 
                         character.health = character.health - playerDamageDealt
-                        
+                       
+                        # Check if the character is dead 
                         if character.health <= 0:
                         
+                            # Give some feedback
                             say (
                                 "You have slain " + character.name + "!\n" 
                             )
-                            
+                           
+                            # Set a flag for whether the character dropped any items 
                             droppedItems = False
-                            
+                           
+                            # Do this for every item... 
                             for item in character.items:
                                 
+                                # Put this item into the scene
                                 self.items.append(item)
-                                
+                               
+                                # Remember that there are dropped items 
                                 droppedItems = True
-                                
+                               
+                            # Check if there are dropped items 
                             if droppedItems:
-                                
+                               
+                                # There are, so give some feedback 
                                 say (
                                     "It looks like " + character.name + " dropped something.\n"
                                 )
-                            
+                           
+                            # Remove the character from the scene 
                             self.characters.remove(character)
-                            
+                        
+                        # The character is not dead
                         else:                 
-                            
+                           
+                            # Give some feednack 
                             say (
                                 "You attack " + character.name + " for " + str(playerDamageDealt) + " damage!\n" +
                                 character.name + " is at " + str(character.health) + " health!\n"
                             )
                             
-                            
+                            # Just a new line for spacing 
                             say (
                                 "...\n"
                             )
-                            
+                           
+                            # Pause for a second 
                             time.sleep(1)
-                            
+                           
+                            # Generate the amount of damage inflicted by this character this attack 
                             characterDamageDealt = random.randint(character.damage[0], character.damage[1])
                             
+                            # Decrease the player's health for the attck
                             currentPlayer.health = currentPlayer.health - characterDamageDealt
                             
+                            # Give some feedback
                             say (
                                 character.name + " attacked you dealing " + str(characterDamageDealt) + " damage!\n" +
                                 "You're at " + str(currentPlayer.health) + " health.\n"
                             )
                                                 
+            # There is no one in the scene to attack
             else:
-            
+           
+                # Feedback 
                 say (
                     "You look for someone to hit but\n" +
                     "there isn't anybody around.\n"
                 )
-                   
+                  
+            # Check if the player is deady 
             if currentPlayer.health <= 0:
                         
+                # Better let them know they're deady
                 say (
                     "You have been slain by " + character.name + "\n"
                 )
-                
+               
+                # Pause for effect 
                 time.sleep(1.5)
-                
+               
+                # Exit. Lots of times in case we're deep down. 
                 sys.exit
                 sys.exit
                 sys.exit
@@ -590,8 +648,10 @@ class Scene:
                 sys.exit
                 sys.exit
                 
+            # The player is not dead so be ready
             else:
-            
+           
+                # Get ready... 
                 self.ready()   
         
         # "m": call the map method that prints out the map    
