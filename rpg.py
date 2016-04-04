@@ -201,7 +201,7 @@ class Player:
         # print that the picked up item was added to
         # the players inventory
         say (
-            item + " was added to your inventory!"
+            item.name + " was added to your inventory!"
         )
         
 # initialise the currentPlayer object
@@ -223,6 +223,20 @@ class Character:
         self.health = health
         
         # initialise character "damage" 
+        self.damage = damage
+
+###################################################################################################
+# ITEM
+###################################################################################################
+
+class Item:
+    
+    def __init__(self, name, damage):
+    
+        # set the local "name" property
+        self.name = name
+        
+        # initialise item "damage" 
         self.damage = damage
 
 ###################################################################################################
@@ -324,7 +338,7 @@ class Scene:
             for inventoryItem in currentPlayer.inventory:
             
                 # add a formatted line for this inventory item
-                inventoryItems = inventoryItems + "     * %s\n" % inventoryItem
+                inventoryItems = inventoryItems + "     * %s\n" % inventoryItem.name
             
             # print the formatted inventory
             printOptions (
@@ -348,7 +362,7 @@ class Scene:
                 for item in self.items:
                 
                     # add a formatted line for this item
-                    items = items + "   * %s\n" % item
+                    items = items + "   * %s\n" % item.name
                     
                 # print the items that are in the current scene    
                 say (
@@ -386,7 +400,7 @@ class Scene:
             for item in self.items:
                 
                 # if the option the user typed is the name of this item
-                if item == option:
+                if item.name == option:
                     
                     # setting foundItem item to the item the player typed
                     foundItem = item
@@ -415,11 +429,19 @@ class Scene:
         elif option == "attack":
                 
             if self.characters:
+            
+                itemDamage = 0
+                
+                for item in currentPlayer.inventory:
+                    
+                    itemDamage = itemDamage + item.damage
+                    
                 
                 say (
                     "\nYou:\n" +
                     "Health = " + str(currentPlayer.health) + "\n" +
-                    "Damage = " + str(currentPlayer.damage) + "\n"
+                    "Base damage = " + str(currentPlayer.damage) +  "\n" +
+                    "Item damage = " + str(itemDamage) + "\n"
                 )
                 
                 for character in self.characters:
@@ -438,7 +460,7 @@ class Scene:
                         
                         time.sleep(1)
                         
-                        playerDamageDealt = random.randint(currentPlayer.damage[0], currentPlayer.damage[1])
+                        playerDamageDealt = random.randint(currentPlayer.damage[0], currentPlayer.damage[1]) + itemDamage
                         
                         character.health = character.health - playerDamageDealt
                         
@@ -615,7 +637,22 @@ gameScenes.append(Scene(
     "You come to on the side of a road.\n" +
     "You see a caravan and dead bodies lying everywhere.\n" +
     "You can't remember anything. What do you do?\n",
-    ["a dull dagger", "some mouldy bread", "a tattered cloak"],
+    [
+        Item(
+            "a dull dagger",
+            4
+        ),
+        
+        Item(
+            "some mouldy bread",
+            -1
+        ),
+        
+        Item(
+            "a tattered cloak",
+            0
+        )
+    ],
     "You see the caravan and the dead bodies lying everywhere.",
     []
  ))
